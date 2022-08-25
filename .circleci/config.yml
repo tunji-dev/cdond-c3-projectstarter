@@ -212,7 +212,7 @@ jobs:
       - checkout
       - add_ssh_keys:
           fingerprints:
-            - "7b:5b:3f:b9:36:87:1e:03:92:0e:e7:0d:70:11:13:02"
+            - "64:67:49:4c:09:67:0d:c1:9c:b4:5a:25:a7:83:e8:9b"
       - run:
           name: Install dependencies
           command: |
@@ -319,7 +319,7 @@ jobs:
       - checkout
       - add_ssh_keys:
           fingerprints:
-            - "7b:5b:3f:b9:36:87:1e:03:92:0e:e7:0d:70:11:13:02"
+            - "64:67:49:4c:09:67:0d:c1:9c:b4:5a:25:a7:83:e8:9b"
       - run:
           name: Install dependencies
           command: |
@@ -364,7 +364,7 @@ jobs:
             --output text)
             export API_URL="http://${BACKEND_IP}:3030"
             echo $API_URL
-            if curl --connect-timeout 5 "${API_URL}/api/status" | grep "ok"; then return 0; else return 0; fi
+            if curl --connect-timeout 5 "${API_URL}/api/status" | grep "ok"; then return 0; else return 1; fi
       - run:
           name: Frontend smoke test.
           command: |
