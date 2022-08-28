@@ -170,6 +170,8 @@ jobs:
           name: Install dependencies
           command: |
             yum install -y tar gzip
+      - attach_workspace:
+          at: ~/
       - run:
           name: Ensure back-end infrastructure exists
           command: |
