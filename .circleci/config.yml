@@ -105,12 +105,9 @@ jobs:
     steps:
       # Checkout code from git
       - checkout
-
-      # Restore from cache
       - restore_cache:
           keys: [backend-build]
 
-      # Your job code here
       - run:
           name: Backend test
           command: |
@@ -230,25 +227,25 @@ jobs:
           name: Configure server
           command: |
             # add environment variables to server
-            echo ENVIRONMENT=production > backend/.env
-            echo TYPEORM_CONNECTION=$TYPEORM_CONNECTION >> backend/.env
-            echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> backend/.env
-            echo TYPEORM_ENTITIES=$TYPEORM_ENTITIES >> backend/.env
-            echo TYPEORM_HOST=$TYPEORM_HOST >> backend/.env
-            echo TYPEORM_MIGRATIONS=$TYPEORM_MIGRATIONS >> backend/.env
-            echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> backend/.env
-            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> backend/.env
-            echo TYPEORM_PORT=$TYPEORM_PORT >> backend/.env
-            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> backend/.env
-            cat backend/.env          
+            # echo ENVIRONMENT=production > backend/.env
+            # echo TYPEORM_CONNECTION=$TYPEORM_CONNECTION >> backend/.env
+            # echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> backend/.env
+            # echo TYPEORM_ENTITIES=$TYPEORM_ENTITIES >> backend/.env
+            # echo TYPEORM_HOST=$TYPEORM_HOST >> backend/.env
+            # echo TYPEORM_MIGRATIONS=$TYPEORM_MIGRATIONS >> backend/.env
+            # echo TYPEORM_MIGRATIONS_DIR=$TYPEORM_MIGRATIONS_DIR >> backend/.env
+            # echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> backend/.env
+            # echo TYPEORM_PORT=$TYPEORM_PORT >> backend/.env
+            # echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> backend/.env
+            # cat backend/.env          
             cd .circleci/ansible
             ansible-playbook -i inventory.txt configure-server.yml
-      - persist_to_workspace:
-          root: ~/
-          paths:
-            - project/backend
-      - destroy-environment:
-          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      # - persist_to_workspace:
+      #     root: ~/
+      #     paths:
+      #       - project/backend
+      # - destroy-environment:
+      #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   run-migrations:
     docker:
@@ -256,6 +253,10 @@ jobs:
       - image: circleci/node:13.8.0
     steps:
       - checkout
+      - attach_workspace:
+          at: ~/
+      - restore_cache:
+          keys: [backend-build]
       - run:
           name: Install dependencies
           command: |
@@ -263,10 +264,6 @@ jobs:
             curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
             unzip -qq awscliv2.zip
             sudo ./aws/install
-      - restore_cache:
-          keys: [backend-build]
-      - attach_workspace:
-          at: ~/
       - run:
           name: Run migrations
           command: |
@@ -278,7 +275,7 @@ jobs:
       - run:
           name: Send migration results to Kvdb.io
           command: |
-            if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
+            if grep -q "has been executed successfully." ~/project/migrations_dump.txt
             then
               curl --insecure https://kvdb.io/WBYKfxaQbKRuumoFYzKSQm/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
             fi
