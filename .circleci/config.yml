@@ -281,6 +281,10 @@ jobs:
             then
               curl --insecure https://kvdb.io/WBYKfxaQbKRuumoFYzKSQm/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
             fi
+     - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/migrations_dump.txt
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
@@ -328,27 +332,56 @@ jobs:
       - add_ssh_keys:
           fingerprints:
             - "64:67:49:4c:09:67:0d:c1:9c:b4:5a:25:a7:83:e8:9b"
-      - run:
-          name: Install dependencies
-          command: |
-            apk add --update --no-cache tar gzip nodejs npm aws-cli ansible
       - restore_cache:
           keys: [backend-build]
       - attach_workspace:
           at: ~/
       - run:
+          name: Install Ansible ans aws-cli
+          command: |
+            apk add --update ansible
+            apk add --no-cache \
+            python3 \
+            py3-pip \
+            && pip3 install --upgrade pip \
+            && pip3 install --no-cache-dir \
+                awscli \
+            && rm -rf /var/cache/apk/*
+      - run:
+          name: Prepare deploy
+          command: |
+            # cd backend
+            # npm install
+            # npm run build
+            # cd ..
+            # Zip the directory
+            tar -C backend -czf artifact.tar.gz .
+            mv artifact.tar.gz ~/project/build/artifact.tar.gz
+            ls -al1h build
+      - run:
           name: Deploy backend
           command: |
-            cd backend
-            npm install
-            npm run build
-            cd ..
-            tar -C backend -czvf artifact.tar.gz .
-            mkdir -p ~/project/.circleci/ansible/roles/deploy/files/
-            mv artifact.tar.gz .circleci/ansible/roles/deploy/files/artifact.tar.gz
             cd .circleci/ansible
-            echo "Contents of the inventory.txt file is ------$(cat inventory.txt)"
+            echo "Contents  of the inventory.txt file is -------"
+            cat inventory.txt
             ansible-playbook -i inventory.txt deploy-backend.yml
+      # - run:
+          # name: Install dependencies
+          # command: |
+          #   apk add --update --no-cache tar gzip nodejs npm aws-cli ansible
+      # - run:
+      #     name: Deploy backend
+      #     command: |
+      #       cd backend
+      #       npm install
+      #       npm run build
+      #       cd ..
+      #       tar -C backend -czvf artifact.tar.gz .
+      #       mkdir -p ~/project/.circleci/ansible/roles/deploy/files/
+      #       mv artifact.tar.gz .circleci/ansible/roles/deploy/files/artifact.tar.gz
+      #       cd .circleci/ansible
+      #       echo "Contents of the inventory.txt file is ------$(cat inventory.txt)"
+      #       ansible-playbook -i inventory.txt deploy-backend.yml
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
       - revert-migrations:
@@ -359,10 +392,20 @@ jobs:
       - image: python:3.7-alpine3.16
     steps:
       - checkout 
+      - attach_workspace:
+          at: ~/
       - run:
           name: Install dependencies
           command: |
-            apk add --update --no-cache curl aws-cli nodejs npm
+            # apk add --update --no-cache curl aws-cli nodejs npm
+          apk add --update curl
+          apk add --no-cache \
+          python3 \
+          py3-pip \
+          && pip3 install --upgrade pip \
+          && pip3 install --no-cache-dir \
+              awscli \
+          && rm -rf /var/cache/apk/*
       - run:
           name: Backend smoke test.
           command: |
