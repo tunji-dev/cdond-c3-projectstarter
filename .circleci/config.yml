@@ -398,14 +398,14 @@ jobs:
           name: Install dependencies
           command: |
             # apk add --update --no-cache curl aws-cli nodejs npm
-          apk add --update curl
-          apk add --no-cache \
-          python3 \
-          py3-pip \
-          && pip3 install --upgrade pip \
-          && pip3 install --no-cache-dir \
-              awscli \
-          && rm -rf /var/cache/apk/*
+            apk add --update curl
+            apk add --no-cache \
+            python3 \
+            py3-pip \
+            && pip3 install --upgrade pip \
+            && pip3 install --no-cache-dir \
+                awscli \
+            && rm -rf /var/cache/apk/*
       - run:
           name: Backend smoke test.
           command: |
