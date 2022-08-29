@@ -288,8 +288,7 @@ jobs:
 
   deploy-frontend:
     docker:
-      # - image: python:3.7-alpine3.16
-      - image: amazon/aws-cli
+      - image: python:3.7-alpine3.16
     steps:
       - checkout
       - run:
@@ -325,7 +324,7 @@ jobs:
                     
   deploy-backend:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: python:3.7-alpine3.16
     steps:
       - checkout
       - add_ssh_keys:
