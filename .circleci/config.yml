@@ -399,20 +399,38 @@ jobs:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
 
-#   cloudfront-update:
-#     docker:
-#       # Docker image here that supports AWS CLI
-#     steps:
-#       # Checkout code from git
-#       - run:
-#           name: Install dependencies
-#           command: |
-#             # your code here
-#       - run:
-#           name: Update cloudfront distribution
-#           command: |
-#             # your code here
-#       # Here's where you will add some code to rollback on failure  
+  cloudfront-update:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            yum install -y gzip
+            yum install -y tar
+      - run:
+          name: Get old WorkID and persist it
+          command: |
+            aws cloudformation \
+              list-exports --query "Exports[?Name=='WorkID'].Value" \
+              --no-paginate --output text >> ~/project/oldWorkID.txt
+            cat ~/project/oldWorkID.txt
+      - run:
+          name: Update cloudfront distribution
+          command: |
+            aws cloudformation deploy \
+            --template-file .circleci/files/cloudfront.yml \
+            --stack-name Udapeople-WEB \
+            --parameter-overrides WorkID="${CIRCLE_WORKFLOW_ID:0:7}" \
+            --tags project=udapeople
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/oldWorkID.txt
+      - destroy-environment:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      # Here's where you will add some code to rollback on failure  
 
 # cleanup:
 #     docker:
