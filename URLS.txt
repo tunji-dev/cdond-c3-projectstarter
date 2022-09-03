@@ -1,2 +1,2 @@
 https://github.com/tunji-dev/cdond-c3-projectstarter
-http://udapeople-f8d810e.s3-website-us-east-1.amazonaws.com
+http://udapeople-140bca6.s3-website-us-east-1.amazonaws.com
